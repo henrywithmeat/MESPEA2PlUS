@@ -1,0 +1,77 @@
+parent.0 = @ec.multiobjective.spea2.SPEA2Breeder spea2.params
+parent.1 = @ec.simple.SimpleShortStatistics simple.params
+
+
+pop.subpop.0.size = 625
+generations       = 101
+
+seed.0                                         = 1
+composition-task                               = Dataset/wsc08/Set05MetaData/problem.xml
+composition-taxonomy                           = Dataset/wsc08/Set05MetaData/taxonomy.owl
+composition-services                           = Dataset/wsc08/Set05MetaData/services-output.xml
+fitness-weight1                                = 1
+fitness-weight2                                = 1
+fitness-weight3                                = 1
+fitness-weight4                                = 1
+fitness-weight5								  = 1
+fitness-weight6                                = 1
+#evalthreads =                           10
+#breedthreads =                          10
+stat.evaluations                               = $eval.stat
+stat.eval-sample-rate                          = 100
+stat.file = $spea2res/spea0805out.stat
+stat.front = $spea2res/spea0805front.stat
+pop.subpop.0.species		 = ec.vector.VectorSpecies
+pop.subpop.0.species.ind	 = wsc.ecj.nsga2.SequenceVectorIndividual
+pop.subpop.0.species.fitness = wsc.ecj.spea2.SPEA2MultiObjectiveFitness
+
+multi.fitness.num-objectives = 6
+multi.fitness.min.0 = 0.0
+multi.fitness.max.0 = 1.0
+multi.fitness.min.1 = 0.0
+multi.fitness.max.1 = 1.0
+multi.fitness.min.2 = 0.0
+multi.fitness.max.2 = 1.0
+multi.fitness.min.3 = 0.0
+multi.fitness.max.3 = 1.0
+multi.fitness.min.4 = 0.0
+multi.fitness.max.4 = 1.0
+multi.fitness.min.5 = 0.0
+multi.fitness.max.5 = 1.0
+
+multi.fitness.maximize.0 = false
+multi.fitness.maximize.1 = false
+multi.fitness.maximize.2 = false
+multi.fitness.maximize.3 = false
+multi.fitness.maximize.4 = false
+multi.fitness.maximize.5 = false
+
+# The global mutation probability must be set, so we set it to 0
+pop.subpop.0.species.mutation-prob	= 0
+
+eval.problem            = wsc.problem.WSCProblem
+init                    = wsc.problem.WSCInitializer
+stat                    = wsc.ecj.spea2.WSCMultiObjectiveStatistics
+stat.silent.front       = false
+stat.do-time            = true
+
+eval		            = wsc.ecj.spea2.SPEA2Evaluator
+breed                   = wsc.ecj.spea2.SPEA2Breeder
+breed.elite.0           = 125
+pop.subpop.0.species.pipe                      = ec.breed.MultiBreedingPipeline
+pop.subpop.0.species.pipe.num-sources          = 1
+select.tournament.size                        = 2
+pop.subpop.0.species.pipe.source.0             = wsc.ecj.nsga2.WSCMutationPipeline
+pop.subpop.0.species.pipe.source.0.prob        = 0.25
+pop.subpop.0.species.pipe.source.0.num-sources = 1
+pop.subpop.0.species.pipe.source.0.source.0    = wsc.ecj.nsga2.WSCCrossoverPipeline
+pop.subpop.0.species.pipe.source.0.prob        = 0.8
+pop.subpop.0.species.pipe.source.0.source.0.num-sources = 2
+pop.subpop.0.species.pipe.source.0.source.0.source.0 = wsc.ecj.spea2.SPEA2TournamentSelection
+pop.subpop.0.species.pipe.source.0.source.0.source.1	   = same
+#pop.subpop.0.species.pipe.source.1.source.0	   = ec.select.TournamentSelection
+
+tchebycheff = false
+numNeighbours = 500
+numLocalSearchTries = 30
+localSearchBound = 40
