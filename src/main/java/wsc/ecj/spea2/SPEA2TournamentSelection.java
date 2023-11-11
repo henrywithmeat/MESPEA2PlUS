@@ -7,7 +7,7 @@
 
 package wsc.ecj.spea2;
 import ec.*;
-import ec.select.*;
+import ec.select.TournamentSelection;
 import ec.simple.*;
 
 /* 
@@ -31,7 +31,6 @@ public class SPEA2TournamentSelection extends TournamentSelection
         //Individual[] oldinds = state.population.subpops[subpopulation].individuals;
         int archiveSize = ((SimpleBreeder)(state.breeder)).numElites(state, subpopulation);
         int archiveStart = state.population.subpops[subpopulation].individuals.length - archiveSize;
-
-        return archiveStart + state.random[thread].nextInt(archiveSize);
+        return state.random[thread].nextInt(archiveStart);
         }
     }

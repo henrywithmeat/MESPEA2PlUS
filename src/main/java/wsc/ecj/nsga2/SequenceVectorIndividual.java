@@ -128,7 +128,16 @@ public class SequenceVectorIndividual extends VectorIndividual {
 		((MultiObjectiveFitness) ind2.fitness).setObjectives(state, init.eval.calculateFitness(ind2));
 		ind2.evaluated = true;
 	}
-
+	public double[] getDoubleListQos(){
+		double[] list = new double[6];
+		list[0] = availability;
+		list[1] = reliability;
+		list[2] = time;
+		list[3] = cost;
+		list[4] = matchingType;
+		list[5] = semanticDistance;
+		return list;
+	}
 	public void setAvailability(double availability) {
 		this.availability = availability;
 	}

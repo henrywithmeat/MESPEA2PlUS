@@ -3,11 +3,17 @@ package wsc.analyze.pojo;
 import wsc.ecj.nsga2.SequenceVectorIndividual;
 
 public class OutData {
+    //归一化的qos
     private SequenceVectorIndividual normalizedQos;
+    //未处理的qos
     private SequenceVectorIndividual Qos;
+    //第几代out
     private int generation;
+    //种群id
     private int populationId;
+    //计算开始时间
     private String startTime;
+    //计算结束时间
     private String endTime;
 
     public String getStartTime() {

@@ -1,5 +1,6 @@
 package wsc.analyze;
 
+import wsc.analyze.common.WSCTools;
 import wsc.analyze.pojo.FrontData;
 import wsc.analyze.pojo.FrontFile;
 import wsc.analyze.pojo.OutFile;
@@ -9,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**public class Main {
+public class Main {
     private static final String[] filePathPreifx = {
             "/Users/wanghanting/Desktop/code_paper/MENSGA24SWSC-master/spea2res/spea",
             "/Users/wanghanting/Desktop/code_paper/MENSGA24SWSC-master/nsga2res/nsga"
@@ -31,7 +32,13 @@ import java.util.Map;
             OutFile outFile = fileReader.readOutFile(prefix + currentPath + filePathSuffix[1]);
             outFileList.add(outFile);
         }
+        WscAnalyzer analyzer = new WscAnalyzer();
+        analyzer.fillOutFile(outFileList);
+        analyzer.fillIGD(frontFileList);
+        for (FrontFile frontFile : frontFileList) {
+            System.out.println(frontFile.getIGD()+" ||| " + frontFile.getHv());
+        }
         System.out.println("File read Over");
     }
 
-}*/
+}

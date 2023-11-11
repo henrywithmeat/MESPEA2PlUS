@@ -3,6 +3,7 @@ package wsc.ecj.spea2;
 import ec.BreedingPipeline;
 import ec.EvolutionState;
 import ec.Individual;
+import ec.multiobjective.MultiObjectiveFitness;
 import ec.simple.SimpleBreeder;
 import ec.util.Parameter;
 import wsc.data.pool.Service;
@@ -10,6 +11,8 @@ import wsc.ecj.nsga2.SequenceVectorIndividual;
 import wsc.problem.WSCInitializer;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Spea2CrossoverPipeline extends BreedingPipeline {
@@ -25,94 +28,64 @@ public class Spea2CrossoverPipeline extends BreedingPipeline {
 	public int numSources() {
 		return 2;
 	}
-
+	//case in archive
 	@Override
 	public int produce(int min, int max, int start, int subpopulation,
 			Individual[] inds, EvolutionState state, int thread) {
 
 		WSCInitializer init = (WSCInitializer) state.initializer;
-
 		Individual[] inds1 = new Individual[inds.length];
 		Individual[] inds2 = new Individual[inds.length];
-
 		int n1 = sources[0].produce(min, max, 0, subpopulation, inds1, state, thread);
 		int n2 = sources[1].produce(min, max, 0, subpopulation, inds2, state, thread);
+		List<Individual> nonFrontList = GenerationIndsMap.nonFrontMap.get(state.generation);
+		List<Individual> nonFrontList2 =  GenerationIndsMap.nonFrontMap2.get(state.generation);
+		int archiveIndex = WSCInitializer.random.nextInt(nonFrontList.size()) ;
+		wsc.ecj.nsga2.SequenceVectorIndividual t1 = ((wsc.ecj.nsga2.SequenceVectorIndividual)nonFrontList.get(archiveIndex));
+		wsc.ecj.nsga2.SequenceVectorIndividual t2 = ((wsc.ecj.nsga2.SequenceVectorIndividual)nonFrontList2.get(archiveIndex));
+		// Perform crossover
+		// Select two random index numbers as the boundaries for the crossover section
+		int indexA = WSCInitializer.random.nextInt(t1.genome.length);
+		int indexB = WSCInitializer.random.nextInt(t1.genome.length);
 
-        if (!(sources[0] instanceof BreedingPipeline)) {
-            for(int q=0;q<n1;q++)
-                inds1[q] = (Individual)(inds1[q].clone());
-        }
+		// Make sure they are different
+		while (indexA == indexB)
+			indexB = WSCInitializer.random.nextInt(t1.genome.length);
 
-        if (!(sources[1] instanceof BreedingPipeline)) {
-            for(int q=0;q<n2;q++)
-                inds2[q] = (Individual)(inds2[q].clone());
-        }
+		// Determine which boundary they are
+		int minBoundary = Math.min(indexA, indexB);
+		int maxBoundary = Math.max(indexA, indexB);
 
-        if (!(inds1[0] instanceof wsc.ecj.nsga2.SequenceVectorIndividual))
-            // uh oh, wrong kind of individual
-            state.output.fatal("WSCCrossoverPipeline didn't get a SequenceVectorIndividual. The offending individual is in subpopulation "
-            + subpopulation + " and it's:" + inds1[0]);
+		// Create new genomes
+		Service[] newGenome1 = new Service[t1.genome.length];
+		Service[] newGenome2 = new Service[t2.genome.length];
 
-        if (!(inds2[0] instanceof wsc.ecj.nsga2.SequenceVectorIndividual))
-            // uh oh, wrong kind of individual
-            state.output.fatal("WSCCrossoverPipeline didn't get a SequenceVectorIndividual. The offending individual is in subpopulation "
-            + subpopulation + " and it's:" + inds2[0]);
+		// Swap crossover sections between candidates, keeping track of which services are in each section
+		Set<Service> newSection1 = new HashSet<Service>();
+		Set<Service> newSection2 = new HashSet<Service>();
 
-        int nMin = Math.min(n1, n2);
+		for (int index = minBoundary; index <= maxBoundary; index++) {
+			// Copy section from parent 1 to genome 2
+			newGenome2[index] = t1.genome[index];
+			newSection2.add(t1.genome[index]);
 
-        // Perform crossover
-        for(int q=start,x=0; q < nMin + start; q++,x++) {
-    		wsc.ecj.nsga2.SequenceVectorIndividual t1 = ((wsc.ecj.nsga2.SequenceVectorIndividual)inds1[x]);
-    		wsc.ecj.nsga2.SequenceVectorIndividual t2 = ((wsc.ecj.nsga2.SequenceVectorIndividual)inds2[x]);
+			// Copy section from parent 2 to genome 1
+			newGenome1[index] = t2.genome[index];
+			newSection1.add(t2.genome[index]);
+		}
 
-    		// Select two random index numbers as the boundaries for the crossover section
-    		int indexA = WSCInitializer.random.nextInt(t1.genome.length);
-    		int indexB = WSCInitializer.random.nextInt(t1.genome.length);
+		// Now fill the remainder of the new genomes, making sure not to duplicate any services
+		fillNewGenome(t2, newGenome2, newSection2, minBoundary, maxBoundary);
+		fillNewGenome(t1, newGenome1, newSection1, minBoundary, maxBoundary);
 
-    		// Make sure they are different
-    		while (indexA == indexB)
-    			indexB = WSCInitializer.random.nextInt(t1.genome.length);
-
-    		// Determine which boundary they are
-    		int minBoundary = Math.min(indexA, indexB);
-    		int maxBoundary = Math.max(indexA, indexB);
-
-    		// Create new genomes
-    		Service[] newGenome1 = new Service[t1.genome.length];
-    		Service[] newGenome2 = new Service[t2.genome.length];
-
-    		// Swap crossover sections between candidates, keeping track of which services are in each section
-    		Set<Service> newSection1 = new HashSet<Service>();
-    		Set<Service> newSection2 = new HashSet<Service>();
-
-    		for (int index = minBoundary; index <= maxBoundary; index++) {
-    			// Copy section from parent 1 to genome 2
-    			newGenome2[index] = t1.genome[index];
-    			newSection2.add(t1.genome[index]);
-
-    			// Copy section from parent 2 to genome 1
-    			newGenome1[index] = t2.genome[index];
-    			newSection1.add(t2.genome[index]);
-    		}
-
-    		// Now fill the remainder of the new genomes, making sure not to duplicate any services
-    		fillNewGenome(t2, newGenome2, newSection2, minBoundary, maxBoundary);
-    		fillNewGenome(t1, newGenome1, newSection1, minBoundary, maxBoundary);
-
-    		// Replace the old genomes with the new ones
-    		t1.genome = newGenome1;
-    		t2.genome = newGenome2;
-			int archiveSize = ((SimpleBreeder)(state.breeder)).numElites(state, subpopulation);
-			q -= archiveSize;
-	        inds[q] = t1;
-	        inds[q].evaluated=false;
-
-	        if (q+archiveSize+1 < inds.length) {
-	        	inds[q+1] = t2;
-	        	inds[q+1].evaluated=false;
-	        }
-        }
-        return n1;
+		// Replace the old genomes with the new ones
+		t1.genome = newGenome1;
+		t2.genome = newGenome2;
+		inds[n1] = t1;
+		inds[n1].evaluated = false;
+		inds[n2] = t2;
+		inds[n2].evaluated = false;
+        return 0;
 	}
 
 	private void fillNewGenome(SequenceVectorIndividual parent, Service[] newGenome, Set<Service> newSection, int minBoundary, int maxBoundary) {
@@ -143,4 +116,6 @@ public class Spea2CrossoverPipeline extends BreedingPipeline {
 		else
 			return currentIndex + 1;
 	}
+
+
 }
